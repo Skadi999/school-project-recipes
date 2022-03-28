@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipes</title>
+</head>
+
+<body>
+  {{>header}}
+
+  <div>
+    {{#each recipes}}
+    <div class="recipe">
+      <div class="imagesContainer">
+        <div class="recipeImage"><img src="{{this.imageURL}}" alt="img">
+          <h6>{{this.name}}</h6>
+        </div>
+      </div>
+    </div>
+    {{/each}}
+  </div>
+
+  {{>footer}}
+</body>
+
+</html>

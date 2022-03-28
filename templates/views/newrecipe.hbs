@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  {{>header}}
+
+
+  <form action="/newrecipe" method="POST">
+    <label for="name">Name</label><br>
+    <input type="text" name="name" id="name"><br>
+    <label for="description">Description</label><br>
+    <input type="text" name="description" id="description"><br>
+    <label for="imageURL">Image URL</label><br>
+    <input type="text" name="imageURL" id="imageURL"><br>
+    <label for="timeInMin">Time in Minutes</label><br>
+    <input type="text" name="timeInMin" id="timeInMin"><br>
+    <label for="difficulty">Difficulty</label><br>
+    <input type="text" name="difficulty" id="difficulty"><br>
+
+    <label for="ing1">Ingredient 1</label><br>
+    <input type="text" class="ingText" name="ingredients[]" id="ing1">
+    <button type="button" id="addNewIngredient">Add</button><br><br>
+
+    <label for="step1">Step 1</label><br>
+    <input type="text" class="stepText" name="steps[]" id="step1">
+    <button type="button" id="addNewStep">Add</button><br><br>
+
+    <input type="submit" value="Submit">
+  </form>
+
+
+  {{>footer}}
+  <script src="/js/newrecipe.js"></script>
+</body>
+
+</html>
