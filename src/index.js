@@ -19,27 +19,17 @@ app.set('views', viewsPath)
 const partialsPath = path.join(__dirname, '../templates/partials')
 hbs.registerPartials(partialsPath)
 
+// let arr = [5, 4, 3, 1, 8, 9, 7, 35, 66, 11];
+// let newArr = convertTo2DArray(arr);
+// console.log(newArr);
 
-var recipeInstance = new Recipe(
-  {
-    name: 'test recipe',
-    description: 'description of test recipe',
-    imageURL: 'https://pbs.twimg.com/profile_images/1234959911777439745/PEZ9SInP_400x400.jpg',
-    timeInMin: 3,
-    difficulty: 'Easy',
-    ingredients: ["ab", "bc"],
-    steps: ["first do this", "then do that"]
-  });
-
-recipeInstance.save().then(() => {
-  console.log(recipeInstance)
-}).catch((error) => {
-  console.log('Error!', error)
-})
+// Recipe.find({})
+// .then((recipes) => {
+//   console.log(recipes);
+// })
 
 app.get('/newrecipe', (req, res) => {
   res.render('newrecipe.hbs', {
-    title: 'new recipe'
   })
 })
 
@@ -62,18 +52,47 @@ app.post('/newrecipe', (req, res) => {
 app.get('/allrecipes', (req, res) => {
   Recipe.find({})
     .then((recipes) => {
+      setShortDescriptionForAllElements(recipes);
+      let twoDRecipes = convertTo2DArray(recipes);
       res.render('recipes.hbs', {
-        title: "All Recipes",
-        recipes: recipes
+        twoDRecipes: twoDRecipes
       })
-      // res.send(recipes)
     })
     .catch((e) => {
       res.status(500).send()
     })
 })
 
-//todo render all recipes
+function convertTo2DArray(arr) {
+  let rows = Math.ceil(arr.length / 3)
+  let index = 0;
+  let twoDArr = [];
+  let rowArr = [];
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < 3; col++) {
+      if (arr[index] === undefined) break;
+      rowArr.push(arr[index++]);
+    }
+    twoDArr.push(rowArr);
+    rowArr = [];
+  }
+  return twoDArr;
+}
+
+function setShortDescriptionForAllElements(arr) {
+  arr.forEach(item => {
+    item.description = getShortDescription(item.description)
+  })
+}
+
+function getShortDescription(description) {
+  if (description.length > 50) {
+    return description.slice(0, 50) + '...';
+  } else {
+    return description;
+  }
+}
 
 app.get('/recipe/:recipeId', (req, res) => {
   const recipeID = req.params.recipeId;
@@ -83,7 +102,6 @@ app.get('/recipe/:recipeId', (req, res) => {
         return res.status(404).send();
       }
       res.render('recipe.hbs', {
-        title: "Recipe of new food",
         name: recipe.name,
         description: recipe.description,
         image: recipe.imageURL,
@@ -97,30 +115,9 @@ app.get('/recipe/:recipeId', (req, res) => {
     })
 })
 
-// app.get('/recipe/:recipeId', (req,res) => {
-//   const recipeID = req.params.recipeId;
-//   Recipe.findById(recipeID)
-//   .then((recipe) => {
-//     if (!recipe) {
-//       return res.status(404).send();
-//     }
-//     res.send(recipe)
-//   })
-//   .catch((e) => {
-//     res.status(500).send();
-//   })
-// })
-
-// app.get('/', (req, res) => {
-//   console.log("test");
-//   res.send('hello world');
-// })
-
 app.get('', (req, res) => {
   console.log('rendered');
-  res.render('index.hbs', {
-    title: 'New'
-  })
+  res.render('index.hbs', {})
 })
 
 app.listen(port, () => { console.log(`listening on port: ${port}`) })
