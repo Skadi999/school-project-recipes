@@ -107,7 +107,8 @@ app.get('/recipe/:recipeId', (req, res) => {
         image: recipe.imageURL,
         time: recipe.timeInMin,
         difficulty: recipe.difficulty,
-        ingredients: recipe.ingredients
+        ingredients: recipe.ingredients,
+        steps: recipe.steps
       })
     })
     .catch((e) => {
