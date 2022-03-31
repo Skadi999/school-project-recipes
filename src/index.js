@@ -34,19 +34,13 @@ app.get('/newrecipe', (req, res) => {
 })
 
 app.post('/newrecipe', (req, res) => {
-  console.log(req.body);
-  console.log(req.body.name);
-  res.send(req.body)
-  // console.log(JSON.parse(req.body));
-  // res.redirect('')
+  const recipe = new Recipe(req.body)
 
-  // const recipe = new Recipe(req.body)
-
-  // recipe.save().then(() => {
-  //     res.status(201).send(recipe)
-  // }).catch((e) => {
-  //     res.status(400).send(e)
-  // })
+  recipe.save().then(() => {
+      res.status(201).send(recipe)
+  }).catch((e) => {
+      res.status(400).send(e)
+  })
 })
 
 app.get('/allrecipes', (req, res) => {
