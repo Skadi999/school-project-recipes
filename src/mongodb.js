@@ -2,8 +2,8 @@
 var mongoose = require('mongoose');
 
 //Set up default mongoose connection
-var mongoDB = 'mongodb://127.0.0.1/recipes';
-mongoose.connect(mongoDB, {useNewUrlParser: true, useUnifiedTopology: true});
+var url = 'mongodb://127.0.0.1/recipes';
+mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true});
 
 //Get the default connection
 var db = mongoose.connection;

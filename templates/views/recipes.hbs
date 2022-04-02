@@ -13,7 +13,14 @@
 <body>
   {{>header}}
 
-
+  {{#if user.username}}
+  <div>
+    {{user.username}}
+  </div>
+  {{else}}
+  <div>Not signed in</div>
+  {{/if}}
+  
   {{!-- 2d array --}}
   <div class="container bg-light my-4 text-center">
     {{#each twoDRecipes}}

@@ -1,38 +1,35 @@
-{{!-- <header>
-    <h1>{{title}}</h1>
-    <nav>
-      <div class="navItem">Home</div>
-      <div class="navItem">Recipes</div>
-      <div class="navItem">Log In</div>
-      <div class="navItem">Register</div>
-    </nav>
-</header> --}}
 <header>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-sm bg-light navbar-light">
-      <div class="container">
-        <a href="#" class="navbar-brand">Recipes</a>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-sm bg-light navbar-light">
+    <div class="container">
+      <a href="/allrecipes" class="navbar-brand">Recipes</a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navmenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-        <div class="collapse navbar-collapse" id="navmenu">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a href="recipes.html" class="nav-link">Browse</a>
-            </li>
-            <li class="nav-item">
-              <a href="register.html" class="nav-link">Register</a>
-            </li>
-            <li class="nav-item">
-              <a href="login.html" class="nav-link">Log In</a>
-            </li>
-            <li class="nav-item">
-              <a href="profile.html" class="nav-link">My Account</a>
-            </li>
-          </ul>
-        </div>
+      <div class="collapse navbar-collapse" id="navmenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a href="/allrecipes" class="nav-link">Browse</a>
+          </li>
+          {{#if user.username}}
+          <li class="nav-item">
+            <a href="/myaccount" class="nav-link">My Account</a>
+          </li>
+          <li class="nav-item">
+            <a href="/logout" class="nav-link">Log Out</a>
+          </li>
+          {{else}}
+          <li class="nav-item">
+            <a href="/register" class="nav-link">Register</a>
+          </li>
+          <li class="nav-item">
+            <a href="/login" class="nav-link">Log In</a>
+          </li>
+          {{/if}}
+        </ul>
       </div>
-    </nav>
-  </header>
+    </div>
+  </nav>
+</header>
