@@ -1,5 +1,22 @@
-//todo: Need to add remove functionality
+appendIngButton();
+appendStepButton();
 addEventListeners();
+
+function appendIngButton() {
+  let ingId = getIdOfLastItem('.ingText');
+  let lastDiv = document.querySelector(`#ingdiv${ingId}`)
+  console.log(lastDiv);
+  let addBtn = createNewIngAddButton();
+  lastDiv.appendChild(addBtn);
+}
+
+function appendStepButton() {
+  let stepId = getIdOfLastItem('.stepText');
+  let lastDiv = document.querySelector(`#stepdiv${stepId}`)
+  console.log(lastDiv);
+  let addBtn = createNewStepAddButton();
+  lastDiv.appendChild(addBtn);
+}
 
 function addEventListeners() {
   document.querySelector('#addNewIngredient').addEventListener('click', () => {
@@ -94,23 +111,27 @@ function createNewIngTextField(idNum) {
 }
 
 function createNewIngAddButton() {
-  let btn = document.createElement('button');
-  btn.type = 'button';
-  btn.id = 'addNewIngredient';
-  btn.className = 'btn';
-  btn.classList.add('btn-primary');
-  btn.classList.add('mt-1');
-  btn.innerHTML = 'Add';
+ let btn = document.createElement('button');
+ btn.type = 'button';
+ btn.id = 'addNewIngredient';
+ btn.className = 'btn';
+ btn.classList.add('btn-primary');
+ btn.classList.add('mt-1');
+ btn.innerHTML = 'Add';
+
+ return btn;
 }
 
 function createNewStepAddButton() {
-  let btn = document.createElement('button');
-  btn.type = 'button';
-  btn.id = 'addNewStep';
-  btn.className = 'btn';
-  btn.classList.add('btn-primary');
-  btn.classList.add('mt-1');
-  btn.innerHTML = 'Add';
+ let btn = document.createElement('button');
+ btn.type = 'button';
+ btn.id = 'addNewStep';
+ btn.className = 'btn';
+ btn.classList.add('btn-primary');
+ btn.classList.add('mt-1');
+ btn.innerHTML = 'Add';
+
+ return btn;
 }
 
 function createNewStepLabel(idNum) {

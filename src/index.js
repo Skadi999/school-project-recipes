@@ -26,6 +26,10 @@ const { use } = require('express/lib/application');
 const { request } = require('http');
 app.set('view engine', 'hbs')
 
+hbs.registerHelper("plusOne", function (value, options) {
+  return parseInt(value) + 1;
+});
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 const viewsPath = path.join(__dirname, '../templates/views')
@@ -38,6 +42,64 @@ hbs.registerPartials(partialsPath)
 app.use((req, res, next) => {
   res.locals.user = req.session.user
   return next();
+})
+
+app.post('/editrecipe/:recipeId', (req, res) => {
+  const recipeID = req.params.recipeId;
+  Recipe.findById(recipeID)
+    .then((recipe) => {
+      recipe.name = req.body.name
+      recipe.description = req.body.description
+      recipe.imageURL = req.body.imageURL
+      recipe.timeInMin = req.body.timeInMin
+      recipe.difficulty = req.body.difficulty
+      recipe.ingredients = req.body.ingredients
+      recipe.steps = req.body.steps
+      recipe.save()
+        .then(() => {
+          res.status(201).send('Recipe updated.')
+        }).catch((e) => {
+          res.status(400).send(e)
+        })
+    })
+})
+
+app.get('/editrecipe/:recipeId', (req, res) => {
+  const recipeID = req.params.recipeId;
+  Recipe.findById(recipeID)
+    .then((recipe) => {
+      if (!recipe) {
+        return res.status(404).send();
+      }
+      //for ing and steps, create array with each and fill value of input with this
+      res.render('editrecipe.hbs', {
+        id: recipe._id,
+        name: recipe.name,
+        description: recipe.description,
+        imageURL: recipe.imageURL,
+        timeInMin: recipe.timeInMin,
+        difficulty: recipe.difficulty,
+        ingredients: recipe.ingredients,
+        steps: recipe.steps
+      })
+    })
+    .catch((e) => {
+      res.status(500).send();
+    })
+})
+
+app.get('/myrecipes', (req, res) => {
+  Recipe.find({ 'author': req.session.user.username })
+    .then((recipes) => {
+      setShortDescriptionForAllElements(recipes);
+      let twoDRecipes = convertTo2DArray(recipes);
+      res.render('myrecipes.hbs', {
+        twoDRecipes: twoDRecipes,
+      })
+    })
+    .catch((e) => {
+      res.status(500).send()
+    })
 })
 
 //Only allows changing PW
@@ -169,7 +231,7 @@ app.post('/login', (req, res) => {
 
 app.get('/logout', (req, res) => {
   req.session.destroy();
-  res.redirect('/allrecipes');
+  res.redirect('/');
 });
 
 app.get('/allrecipes', (req, res) => {

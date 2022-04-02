@@ -13,9 +13,7 @@
 <body>
   {{>header}}
 
-
-
-<div class="container">
+  <div class="container">
     <form class="w-50 my-5" action="/newrecipe" method="POST">
       <div class="mb-3">
         <div class="mb-3">
@@ -44,13 +42,12 @@
         <button type="button" id="addNewIngredient" class="btn btn-primary mt-1">Add</button>
       </div>
 
-      {{!-- step --}}
       <div class="mb-3 stepDiv" id="stepdiv1">
         <label for="step1" class="form-label">Step 1</label>
         <input type="text" class="form-control stepText" name="steps[]" id="step1">
         <button type="button" id="addNewStep" class="btn btn-primary mt-1">Add</button>
       </div>
-      
+
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
   </div>
