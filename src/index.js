@@ -45,17 +45,23 @@ app.get('/newrecipe', (req, res) => {
   if (!req.session.user) {
     res.status(403).send('You must be logged in to create a new recipe.')
   } else {
-    res.render('newrecipe.hbs', {
-    })
+    res.render('newrecipe.hbs', {})
   }
 
 })
 
 app.post('/newrecipe', (req, res) => {
-  const recipe = new Recipe(req.body)
+  if (!req.session.user) {
+    res.status(403).send('You must be logged in to create a new recipe.')
+    return;
+  }
+  let recipeJson = req.body;
+  recipeJson.author = req.session.user.username;
+  const recipe = new Recipe(recipeJson)
 
   recipe.save().then(() => {
-    res.status(201).send(recipe)
+    res.redirect('/allrecipes')
+    // res.status(201).send(recipe)
   }).catch((e) => {
     res.status(400).send(e)
   })
