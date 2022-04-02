@@ -1,5 +1,4 @@
 //todo delete and edit operations
-//todo fix navbar links
 const path = require('path')
 const session = require('express-session')
 const express = require('express');
@@ -39,6 +38,53 @@ hbs.registerPartials(partialsPath)
 app.use((req, res, next) => {
   res.locals.user = req.session.user
   return next();
+})
+
+//Only allows changing PW
+app.post('/editaccount', (req, res) => {
+  User.findOne({ 'username': req.session.user.username }, function (err, foundUser) {
+    if (!foundUser) {
+      res.status(500).send('idk wht happen :/')
+      return;
+    }
+    if (req.body.password !== req.body.confirmPW) {
+      res.status(400).send('Passwords do not match.')
+      return;
+    }
+    foundUser.password = req.body.password;
+    foundUser.save()
+      .then(() => {
+        res.status(201).send('Credentials successfully updated')
+      }).catch((e) => {
+        res.status(400).send(e)
+      })
+  })
+})
+
+app.get('/editaccount', (req, res) => {
+  if (!req.session.user) {
+    res.status(403).send('You must be logged in to view your account.')
+    return;
+  }
+  User.findOne({ 'username': req.session.user.username }, function (err, foundUser) {
+    if (!foundUser) {
+      res.status(500).send('idk wht happen :/')
+      return;
+    }
+    res.render('editaccount.hbs', {
+      id: foundUser._id,
+      username: foundUser.username,
+      password: foundUser.password,
+    })
+  })
+})
+
+app.get('/myaccount', (req, res) => {
+  if (!req.session.user) {
+    res.status(403).send('You must be logged in to view your account.')
+  } else {
+    res.render('myaccount.hbs', {})
+  }
 })
 
 app.get('/newrecipe', (req, res) => {
@@ -126,7 +172,6 @@ app.get('/logout', (req, res) => {
   res.redirect('/allrecipes');
 });
 
-//todo use if statement in hbs to change nav links
 app.get('/allrecipes', (req, res) => {
   Recipe.find({})
     .then((recipes) => {
@@ -134,7 +179,6 @@ app.get('/allrecipes', (req, res) => {
       let twoDRecipes = convertTo2DArray(recipes);
       res.render('recipes.hbs', {
         twoDRecipes: twoDRecipes,
-        user: req.session.user
       })
     })
     .catch((e) => {
@@ -199,5 +243,15 @@ app.get('/recipe/:recipeId', (req, res) => {
 app.get('', (req, res) => {
   res.render('index.hbs', {})
 })
+
+function getUserByName(username) {
+  User.findOne({ 'username': username }, function (err, foundUser) {
+    if (foundUser) {
+      return foundUser;
+    } else {
+      return;
+    }
+  })
+}
 
 app.listen(port, () => { console.log(`listening on port: ${port}`) })
