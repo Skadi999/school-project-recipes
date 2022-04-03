@@ -47,8 +47,7 @@ app.delete('/deleterecipe/:recipeId', (req, res) => {
   const recipeID = req.params.recipeId;
   Recipe.findOneAndDelete({ _id: recipeID })
     .then(function () {
-      console.log("Data deleted");
-      res.status(201).send();
+      res.status(204).send(`Data at ID ${recipeID} has been deleted`);
     }).catch(function (error) {
       console.log(error);
     });
@@ -79,7 +78,7 @@ app.get('/editrecipe/:recipeId', (req, res) => {
   Recipe.findById(recipeID)
     .then((recipe) => {
       if (!recipe) {
-        return res.status(404).send();
+        return res.status(404).send('Recipe not found');
       }
       //for ing and steps, create array with each and fill value of input with this
       res.render('editrecipe.hbs', {
@@ -94,7 +93,7 @@ app.get('/editrecipe/:recipeId', (req, res) => {
       })
     })
     .catch((e) => {
-      res.status(500).send();
+      res.status(500).send(e);
     })
 })
 
@@ -108,7 +107,7 @@ app.get('/myrecipes', (req, res) => {
       })
     })
     .catch((e) => {
-      res.status(500).send()
+      res.status(500).send(e)
     })
 })
 
@@ -116,7 +115,7 @@ app.get('/myrecipes', (req, res) => {
 app.post('/editaccount', (req, res) => {
   User.findOne({ 'username': req.session.user.username }, function (err, foundUser) {
     if (!foundUser) {
-      res.status(500).send('idk wht happen :/')
+      res.status(404).send('User not found.')
       return;
     }
     if (req.body.password !== req.body.confirmPW) {
@@ -126,7 +125,7 @@ app.post('/editaccount', (req, res) => {
     foundUser.password = req.body.password;
     foundUser.save()
       .then(() => {
-        res.status(201).send('Credentials successfully updated')
+        res.status(204).send('Credentials successfully updated')
       }).catch((e) => {
         res.status(400).send(e)
       })
@@ -135,12 +134,12 @@ app.post('/editaccount', (req, res) => {
 
 app.get('/editaccount', (req, res) => {
   if (!req.session.user) {
-    res.status(403).send('You must be logged in to view your account.')
+    res.status(401).send('You must be logged in to view your account.')
     return;
   }
   User.findOne({ 'username': req.session.user.username }, function (err, foundUser) {
     if (!foundUser) {
-      res.status(500).send('idk wht happen :/')
+      res.status(404).send('User not found')
       return;
     }
     res.render('editaccount.hbs', {
@@ -153,7 +152,7 @@ app.get('/editaccount', (req, res) => {
 
 app.get('/myaccount', (req, res) => {
   if (!req.session.user) {
-    res.status(403).send('You must be logged in to view your account.')
+    res.status(401).send('You must be logged in to view your account.')
   } else {
     res.render('myaccount.hbs', {})
   }
@@ -161,7 +160,7 @@ app.get('/myaccount', (req, res) => {
 
 app.get('/newrecipe', (req, res) => {
   if (!req.session.user) {
-    res.status(403).send('You must be logged in to create a new recipe.')
+    res.status(401).send('You must be logged in to create a new recipe.')
   } else {
     res.render('newrecipe.hbs', {})
   }
@@ -170,7 +169,7 @@ app.get('/newrecipe', (req, res) => {
 
 app.post('/newrecipe', (req, res) => {
   if (!req.session.user) {
-    res.status(403).send('You must be logged in to create a new recipe.')
+    res.status(401).send('You must be logged in to create a new recipe.')
     return;
   }
   let recipeJson = req.body;
@@ -179,7 +178,6 @@ app.post('/newrecipe', (req, res) => {
 
   recipe.save().then(() => {
     res.redirect('/allrecipes')
-    // res.status(201).send(recipe)
   }).catch((e) => {
     res.status(400).send(e)
   })
@@ -187,7 +185,7 @@ app.post('/newrecipe', (req, res) => {
 
 app.get('/register', (req, res) => {
   if (req.session.user) {
-    res.status(403).send('If you wish to create a new account, you must first log out.')
+    res.status(400).send('If you wish to create a new account, you must first log out.')
   }
   else {
     res.render('register.hbs', {
@@ -201,7 +199,7 @@ app.post('/register', (req, res) => {
   //If both conditions are ok, creates user.
   User.findOne({ 'username': req.body.username }, function (err, foundUser) {
     if (foundUser) {
-      res.status(500).send('Username taken.')
+      res.status(400).send('Username taken.')
     }
     else if (req.body.password !== req.body.confirmPassword) {
       res.status(400).send('Passwords do not match.')
@@ -221,7 +219,7 @@ app.post('/register', (req, res) => {
 
 app.get('/login', (req, res) => {
   if (req.session.user) {
-    res.status(403).send('You are already logged in.')
+    res.status(400).send('You are already logged in.')
   } else {
     res.render('login.hbs', {})
   }
@@ -231,7 +229,6 @@ app.post('/login', (req, res) => {
   User.findOne({ 'username': req.body.username, 'password': req.body.password }, function (err, foundUser) {
     if (foundUser) {
       req.session.user = { username: foundUser.username }
-      // res.status(200).send('You are now logged in.');
       res.redirect('/')
     } else {
       res.status(401).send('Incorrect Credentials')
@@ -258,6 +255,33 @@ app.get('/allrecipes', (req, res) => {
     })
 })
 
+app.get('/recipe/:recipeId', (req, res) => {
+  const recipeID = req.params.recipeId;
+  Recipe.findById(recipeID)
+    .then((recipe) => {
+      if (!recipe) {
+        return res.status(404).send('Recipe not found.');
+      }
+      res.render('recipe.hbs', {
+        name: recipe.name,
+        description: recipe.description,
+        image: recipe.imageURL,
+        time: recipe.timeInMin,
+        difficulty: recipe.difficulty,
+        ingredients: recipe.ingredients,
+        steps: recipe.steps
+      })
+    })
+    .catch((e) => {
+      res.status(500).send(e);
+    })
+})
+
+app.get('', (req, res) => {
+  res.render('index.hbs', {})
+})
+
+//Converts a 1-dimensional array to a 2-dimensional one
 function convertTo2DArray(arr) {
   let rows = Math.ceil(arr.length / 3)
   let index = 0;
@@ -288,42 +312,6 @@ function getShortDescription(description) {
   } else {
     return description;
   }
-}
-
-app.get('/recipe/:recipeId', (req, res) => {
-  const recipeID = req.params.recipeId;
-  Recipe.findById(recipeID)
-    .then((recipe) => {
-      if (!recipe) {
-        return res.status(404).send();
-      }
-      res.render('recipe.hbs', {
-        name: recipe.name,
-        description: recipe.description,
-        image: recipe.imageURL,
-        time: recipe.timeInMin,
-        difficulty: recipe.difficulty,
-        ingredients: recipe.ingredients,
-        steps: recipe.steps
-      })
-    })
-    .catch((e) => {
-      res.status(500).send();
-    })
-})
-
-app.get('', (req, res) => {
-  res.render('index.hbs', {})
-})
-
-function getUserByName(username) {
-  User.findOne({ 'username': username }, function (err, foundUser) {
-    if (foundUser) {
-      return foundUser;
-    } else {
-      return;
-    }
-  })
 }
 
 app.listen(port, () => { console.log(`listening on port: ${port}`) })
