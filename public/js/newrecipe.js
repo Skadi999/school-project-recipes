@@ -10,7 +10,6 @@ function addEventListeners() {
   })
 }
 
-//Need to assign ID to the div itself, remove button from last div, add the new div after it.
 function addNewIngredient() {
   //get id of last ingredient
   let ingId = getIdOfLastItem('.ingText');

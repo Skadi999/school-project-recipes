@@ -17,7 +17,6 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 30000
   }
 }));
 
@@ -42,6 +41,17 @@ hbs.registerPartials(partialsPath)
 app.use((req, res, next) => {
   res.locals.user = req.session.user
   return next();
+})
+
+app.delete('/deleterecipe/:recipeId', (req, res) => {
+  const recipeID = req.params.recipeId;
+  Recipe.findOneAndDelete({ _id: recipeID })
+    .then(function () {
+      console.log("Data deleted");
+      res.status(201).send();
+    }).catch(function (error) {
+      console.log(error);
+    });
 })
 
 app.post('/editrecipe/:recipeId', (req, res) => {
