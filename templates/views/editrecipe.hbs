@@ -14,7 +14,7 @@
   {{>header}}
 
   <div class="container">
-    <form class="w-50 my-5" action="/editrecipe/{{id}}" method="POST">
+    <form class="w-50 my-5" action="/editrecipe/{{id}}?_method=PUT" method="post">
       <div class="mb-3">
         <div class="mb-3">
           <label for="name" class="form-label">Recipe Name</label>
@@ -52,6 +52,7 @@
       </div>
       {{/each}}
 
+      <input type="hidden" id="form-control" name="id" value={{id}}>
 
       <button type="submit" class="submitBtn btn btn-primary">Submit</button>
     </form>

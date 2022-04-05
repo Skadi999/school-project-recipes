@@ -1,15 +1,20 @@
-//todo delete and edit operations
+//todo install bodyparser 
+//todo replace res.send with redirects and TEST
+//merge "return;" with res.send???
 const path = require('path')
 const session = require('express-session')
 const express = require('express');
 require('./mongodb');
 const Recipe = require('./model/recipe')
 const User = require('./model/user')
+const bcrypt = require('bcryptjs')
+const methodOverride = require('method-override');
 
 const app = express();
 const port = 3000;
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(methodOverride('_method'));
 
 app.use(session({
   key: 'user_sid',
@@ -47,13 +52,18 @@ app.delete('/deleterecipe/:recipeId', (req, res) => {
   const recipeID = req.params.recipeId;
   Recipe.findOneAndDelete({ _id: recipeID })
     .then(function () {
-      res.status(204).send(`Data at ID ${recipeID} has been deleted`);
-    }).catch(function (error) {
-      console.log(error);
+      res.status(204)
+      res.redirect('/myrecipes')
+    })
+    .catch(function (e) {
+      console.log(`Error on DELETE /deleterecipe: ${e}`);
+      res.status(500)
+      res.redirect('/')
     });
 })
 
-app.post('/editrecipe/:recipeId', (req, res) => {
+//this should be PUT, fix like the above method
+app.put('/editrecipe/:recipeId', (req, res) => {
   const recipeID = req.params.recipeId;
   Recipe.findById(recipeID)
     .then((recipe) => {
@@ -66,9 +76,12 @@ app.post('/editrecipe/:recipeId', (req, res) => {
       recipe.steps = req.body.steps
       recipe.save()
         .then(() => {
-          res.status(201).send('Recipe updated.')
+          res.status(201)
+          res.redirect('/myrecipes')
         }).catch((e) => {
-          res.status(400).send(e)
+          console.log(`Error on POST /editrecipe: ${e}`);
+          res.status(500)
+          res.redirect('/')
         })
     })
 })
@@ -80,7 +93,7 @@ app.get('/editrecipe/:recipeId', (req, res) => {
       if (!recipe) {
         return res.status(404).send('Recipe not found');
       }
-      //for ing and steps, create array with each and fill value of input with this
+      //for ingredients and steps, create array with #each and fill value of input with {{this}}
       res.render('editrecipe.hbs', {
         id: recipe._id,
         name: recipe.name,
@@ -93,10 +106,13 @@ app.get('/editrecipe/:recipeId', (req, res) => {
       })
     })
     .catch((e) => {
-      res.status(500).send(e);
+      console.log(`Error on GET /editrecipe: ${e}`);
+      res.status(500)
+      res.redirect('/')
     })
 })
 
+//Renders recipes created by the logged in user
 app.get('/myrecipes', (req, res) => {
   Recipe.find({ 'author': req.session.user.username })
     .then((recipes) => {
@@ -107,12 +123,14 @@ app.get('/myrecipes', (req, res) => {
       })
     })
     .catch((e) => {
-      res.status(500).send(e)
+      console.log(`Error on GET /myrecipes: ${e}`);
+      res.status(500)
+      res.redirect('/')
     })
 })
 
 //Only allows changing PW
-app.post('/editaccount', (req, res) => {
+app.put('/editaccount', (req, res) => {
   User.findOne({ 'username': req.session.user.username }, function (err, foundUser) {
     if (!foundUser) {
       res.status(404).send('User not found.')
@@ -125,9 +143,13 @@ app.post('/editaccount', (req, res) => {
     foundUser.password = req.body.password;
     foundUser.save()
       .then(() => {
-        res.status(204).send('Credentials successfully updated')
-      }).catch((e) => {
-        res.status(400).send(e)
+        res.status(204)
+        res.redirect('/myaccount')
+      })
+      .catch((e) => {
+        console.log(`Error on POST /editaccount: ${e}`);
+        res.status(500)
+        res.redirect('/')
       })
   })
 })
@@ -145,7 +167,6 @@ app.get('/editaccount', (req, res) => {
     res.render('editaccount.hbs', {
       id: foundUser._id,
       username: foundUser.username,
-      password: foundUser.password,
     })
   })
 })
@@ -164,7 +185,6 @@ app.get('/newrecipe', (req, res) => {
   } else {
     res.render('newrecipe.hbs', {})
   }
-
 })
 
 app.post('/newrecipe', (req, res) => {
@@ -179,7 +199,9 @@ app.post('/newrecipe', (req, res) => {
   recipe.save().then(() => {
     res.redirect('/allrecipes')
   }).catch((e) => {
-    res.status(400).send(e)
+    console.log(`Error on POST /newrecipe: ${e}`);
+    res.status(500)
+    res.redirect('/')
   })
 })
 
@@ -194,7 +216,7 @@ app.get('/register', (req, res) => {
 })
 
 app.post('/register', (req, res) => {
-  //Searches for the user with the reqbody username in the DB, returns 500 if finds
+  //Searches for the user with the reqbody username in the DB, returns 400 if finds
   //Then checks if PW and confirm PW match, if don't -> return 400
   //If both conditions are ok, creates user.
   User.findOne({ 'username': req.body.username }, function (err, foundUser) {
@@ -211,7 +233,9 @@ app.post('/register', (req, res) => {
           res.status(201).send(user)
         })
         .catch((e) => {
-          res.status(400).send(e)
+          console.log(`Error on POST /register: ${e}`);
+          res.status(500)
+          res.redirect('/')
         })
     }
   })
@@ -225,15 +249,18 @@ app.get('/login', (req, res) => {
   }
 })
 
-app.post('/login', (req, res) => {
-  User.findOne({ 'username': req.body.username, 'password': req.body.password }, function (err, foundUser) {
-    if (foundUser) {
-      req.session.user = { username: foundUser.username }
+app.post('/login', async (req, res) => {
+  const body = req.body;
+  const user = await User.findOne({ 'username': req.body.username });
+  if (user) {
+    const isPasswordValid = await bcrypt.compare(body.password, user.password);
+    if (isPasswordValid) {
+      req.session.user = { username: user.username }
       res.redirect('/')
     } else {
       res.status(401).send('Incorrect Credentials')
     }
-  })
+  }
 })
 
 app.get('/logout', (req, res) => {
@@ -251,7 +278,9 @@ app.get('/allrecipes', (req, res) => {
       })
     })
     .catch((e) => {
-      res.status(500).send()
+      console.log(`Error on GET /allrecipes: ${e}`);
+      res.status(500)
+      res.redirect('/')
     })
 })
 
@@ -273,7 +302,9 @@ app.get('/recipe/:recipeId', (req, res) => {
       })
     })
     .catch((e) => {
-      res.status(500).send(e);
+      console.log(`Error on GET /recipe: ${e}`);
+      res.status(500)
+      res.redirect('/')
     })
 })
 

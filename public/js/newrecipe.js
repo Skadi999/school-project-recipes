@@ -1,4 +1,3 @@
-//todo: Need to add remove functionality
 addEventListeners();
 
 function addEventListeners() {
@@ -90,26 +89,6 @@ function createNewIngTextField(idNum) {
   text.name = 'ingredients[]'
   text.id = `ing${idNum}`
   return text;
-}
-
-function createNewIngAddButton() {
-  let btn = document.createElement('button');
-  btn.type = 'button';
-  btn.id = 'addNewIngredient';
-  btn.className = 'btn';
-  btn.classList.add('btn-primary');
-  btn.classList.add('mt-1');
-  btn.innerHTML = 'Add';
-}
-
-function createNewStepAddButton() {
-  let btn = document.createElement('button');
-  btn.type = 'button';
-  btn.id = 'addNewStep';
-  btn.className = 'btn';
-  btn.classList.add('btn-primary');
-  btn.classList.add('mt-1');
-  btn.innerHTML = 'Add';
 }
 
 function createNewStepLabel(idNum) {

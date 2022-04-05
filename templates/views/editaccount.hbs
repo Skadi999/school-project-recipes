@@ -14,20 +14,20 @@
   {{>header}}
 
   <div class="container">
-    <form class="w-50 my-5" action="/editaccount" method="POST">
-      <input type="hidden" name="_METHOD" value="PUT"/>
+    <form class="w-50 my-5" action="/editaccount?_method=PUT" method="post">
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
         <input type="text" class="form-control" name="username" id="username" value="{{username}}" readonly>
       </div>
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" name="password" id="password" value="{{password}}">
+        <input type="password" class="form-control" name="password" id="password">
       </div>
       <div class="mb-3">
         <label for="confirmPW" class="form-label">Confirm Password</label>
         <input type="password" class="form-control" name="confirmPW" id="confirmPW">
       </div>
+      <input type="hidden" id="form-control" name="id" value={{id}}>
 
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
