@@ -8,6 +8,7 @@ require('./mongodb');
 const userRouter = require('./routers/user')
 const recipeRouter = require('./routers/recipe')
 const methodOverride = require('method-override');
+const Defaults = require('./defaults')
 
 const app = express();
 const port = 3000;
@@ -44,6 +45,8 @@ app.use((req, res, next) => {
   res.locals.user = req.session.user
   return next();
 })
+Defaults.generateDefaultUsers();
+Defaults.generateDefaultRecipes();
 
 app.use(userRouter)
 app.use(recipeRouter)
