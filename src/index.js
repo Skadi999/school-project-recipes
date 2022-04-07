@@ -1,6 +1,3 @@
-//todo install bodyparser - maybe not needed
-//todo replace res.send with redirects and TEST
-//merge "return;" with res.send???
 const path = require('path')
 const session = require('express-session')
 const express = require('express');

@@ -1,5 +1,6 @@
 const express = require('express');
 const Recipe = require('../model/recipe')
+const util = require('../middleware/util')
 const router = new express.Router()
 
 //Delete a recipe by its id.
@@ -27,17 +28,77 @@ router.put('/editrecipe/:recipeId', (req, res) => {
       recipe.imageURL = req.body.imageURL
       recipe.timeInMin = req.body.timeInMin
       recipe.difficulty = req.body.difficulty
-      recipe.ingredients = req.body.ingredients
-      recipe.steps = req.body.steps
+      recipe.ingredients = req.body.ingredients.filter(Boolean);
+      recipe.steps = req.body.steps.filter(Boolean);
       recipe.save()
         .then(() => {
           res.status(201)
           res.redirect('/myrecipes')
         }).catch((e) => {
-          console.log(`Error on POST /editrecipe: ${e}`);
-          res.status(500)
-          res.redirect('/')
+          console.log(`Error on PUT /editrecipe: ${e}`);
+          return res.status(500).send(e)
         })
+    })
+})
+
+//Creates a new recipe
+router.post('/newrecipe', (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).send('You must be logged in to create a new recipe.')
+  }
+  
+  let recipeJson = req.body;
+  recipeJson.author = req.session.user.username;
+  const recipe = new Recipe(recipeJson)
+  recipe.ingredients = recipe.ingredients.filter(Boolean);
+  recipe.steps = recipe.steps.filter(Boolean);
+  recipe.save().then(() => {
+    res.redirect('/myrecipes')
+  }).catch((e) => {
+    console.log(`Error on POST /newrecipe: ${e}`);
+    return res.status(500).send(e)
+  })
+})
+
+//Renders recipes created by the logged in user
+router.get('/myrecipes', (req, res) => {
+  Recipe.find({ 'author': req.session.user.username })
+    .then((recipes) => {
+      util.setShortDescriptionForAllElements(recipes);
+      let twoDRecipes = util.convertTo2DArray(recipes);
+      res.render('myrecipes.hbs', {
+        twoDRecipes: twoDRecipes,
+      })
+    })
+    .catch((e) => {
+      console.log(`Error on GET /myrecipes: ${e}`);
+      res.status(500)
+      res.redirect('/')
+    })
+})
+
+//Renders a page where a user may create a new recipe
+router.get('/newrecipe', (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).send('You must be logged in to create a new recipe.')
+  }
+  res.render('newrecipe.hbs')
+})
+
+//Renders a page that contains every single recipe.
+router.get('/allrecipes', (req, res) => {
+  Recipe.find({})
+    .then((recipes) => {
+      util.setShortDescriptionForAllElements(recipes);
+      let twoDRecipes = util.convertTo2DArray(recipes);
+      res.render('recipes.hbs', {
+        twoDRecipes: twoDRecipes,
+      })
+    })
+    .catch((e) => {
+      console.log(`Error on GET /allrecipes: ${e}`);
+      res.status(500)
+      res.redirect('/')
     })
 })
 
@@ -68,68 +129,6 @@ router.get('/editrecipe/:recipeId', (req, res) => {
     })
 })
 
-//Renders recipes created by the logged in user
-router.get('/myrecipes', (req, res) => {
-  Recipe.find({ 'author': req.session.user.username })
-    .then((recipes) => {
-      setShortDescriptionForAllElements(recipes);
-      let twoDRecipes = convertTo2DArray(recipes);
-      res.render('myrecipes.hbs', {
-        twoDRecipes: twoDRecipes,
-      })
-    })
-    .catch((e) => {
-      console.log(`Error on GET /myrecipes: ${e}`);
-      res.status(500)
-      res.redirect('/')
-    })
-})
-
-//Renders a page where a user may create a new recipe
-router.get('/newrecipe', (req, res) => {
-  if (!req.session.user) {
-    res.status(401).send('You must be logged in to create a new recipe.')
-  } else {
-    res.render('newrecipe.hbs', {})
-  }
-})
-
-//Creates a new recipe
-router.post('/newrecipe', (req, res) => {
-  if (!req.session.user) {
-    res.status(401).send('You must be logged in to create a new recipe.')
-    return;
-  }
-  let recipeJson = req.body;
-  recipeJson.author = req.session.user.username;
-  const recipe = new Recipe(recipeJson)
-
-  recipe.save().then(() => {
-    res.redirect('/allrecipes')
-  }).catch((e) => {
-    console.log(`Error on POST /newrecipe: ${e}`);
-    res.status(500)
-    res.redirect('/')
-  })
-})
-
-//Renders a page that contains every single recipe.
-router.get('/allrecipes', (req, res) => {
-  Recipe.find({})
-    .then((recipes) => {
-      setShortDescriptionForAllElements(recipes);
-      let twoDRecipes = convertTo2DArray(recipes);
-      res.render('recipes.hbs', {
-        twoDRecipes: twoDRecipes,
-      })
-    })
-    .catch((e) => {
-      console.log(`Error on GET /allrecipes: ${e}`);
-      res.status(500)
-      res.redirect('/')
-    })
-})
-
 //Renders a single recipe.
 router.get('/recipe/:recipeId', (req, res) => {
   const recipeID = req.params.recipeId;
@@ -154,38 +153,5 @@ router.get('/recipe/:recipeId', (req, res) => {
       res.redirect('/')
     })
 })
-
-//Converts a 1-dimensional array to a 2-dimensional one
-function convertTo2DArray(arr) {
-  let rows = Math.ceil(arr.length / 3)
-  let index = 0;
-  let twoDArr = [];
-  let rowArr = [];
-
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < 3; col++) {
-      if (arr[index] === undefined) break;
-      rowArr.push(arr[index++]);
-    }
-    twoDArr.push(rowArr);
-    rowArr = [];
-  }
-  return twoDArr;
-}
-
-function setShortDescriptionForAllElements(arr) {
-  arr.forEach(item => {
-    item.description = getShortDescription(item.description)
-  })
-}
-
-//Converts text of more than 50 characters long to a 50 char long text with '...' at the end.
-function getShortDescription(description) {
-  if (description.length > 50) {
-    return description.slice(0, 50) + '...';
-  } else {
-    return description;
-  }
-}
 
 module.exports = router
