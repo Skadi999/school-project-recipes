@@ -5,9 +5,16 @@ const router = new express.Router()
 
 //Delete a recipe by its id.
 router.delete('/deleterecipe/:recipeId', (req, res) => {
+  if (!req.session.user) {
+    return res.status(400).send("You are not logged in!")
+  }
   const recipeID = req.params.recipeId;
   Recipe.findOneAndDelete({ _id: recipeID })
-    .then(function () {
+    .then((recipe) => {
+      if (req.session.user.username !== recipe.author) {
+        console.log("Error: Recipe author names don't match");
+        return res.status(400).send('You are not the recipes author!')
+      }
       res.status(204)
       res.redirect('/myrecipes')
     })
@@ -20,9 +27,16 @@ router.delete('/deleterecipe/:recipeId', (req, res) => {
 
 //Edits a recipe by its id.
 router.put('/editrecipe/:recipeId', (req, res) => {
+  if (!req.session.user) {
+    return res.status(400).send("You are not logged in!")
+  }
   const recipeID = req.params.recipeId;
   Recipe.findById(recipeID)
     .then((recipe) => {
+      if (req.session.user.username !== recipe.author) {
+        console.log("Error: Recipe author names don't match");
+        return res.status(400).send('You are not the recipes author!')
+      }
       recipe.name = req.body.name
       recipe.description = req.body.description
       recipe.imageURL = req.body.imageURL
@@ -46,7 +60,6 @@ router.post('/newrecipe', (req, res) => {
   if (!req.session.user) {
     return res.status(401).send('You must be logged in to create a new recipe.')
   }
-  
   let recipeJson = req.body;
   recipeJson.author = req.session.user.username;
   const recipe = new Recipe(recipeJson)
@@ -62,6 +75,10 @@ router.post('/newrecipe', (req, res) => {
 
 //Renders recipes created by the logged in user
 router.get('/myrecipes', (req, res) => {
+  if (!req.session.user) {
+    return res.status(400).send("You are not logged in!")
+  }
+
   Recipe.find({ 'author': req.session.user.username })
     .then((recipes) => {
       util.setShortDescriptionForAllElements(recipes);
@@ -104,6 +121,10 @@ router.get('/allrecipes', (req, res) => {
 
 //Renders the recipe editing page
 router.get('/editrecipe/:recipeId', (req, res) => {
+  if (!req.session.user) {
+    return res.status(400).send("You are not logged in!")
+  }
+  
   const recipeID = req.params.recipeId;
   Recipe.findById(recipeID)
     .then((recipe) => {

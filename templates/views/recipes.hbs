@@ -14,13 +14,13 @@
   {{>header}}
 
   {{!-- 2d array --}}
-  <div class="container bg-light my-4 text-center">
+  <div class="container bg-light my-4 pb-5 text-center">
     {{#each twoDRecipes}}
     <div class="row py-4">
       {{#each this}}
       <div class="col-sm-4">
         <div class="card">
-          <img src="{{this.imageURL}}" alt="Img" class="card-img-top" style="max-height: 25rem;">
+          <img src="{{this.imageURL}}" alt="Img" class="card-img-top" style="height: 20rem;">
           <div class="card-body">
             <h5 class="card-title">{{this.name}}</h5>
             <p class="card-text">{{this.description}}</p>

@@ -24,7 +24,7 @@ let recipeSchema = new Schema({
   },
   ingredients: { type: [String], required: true },
   steps: { type: [String], required: true },
-  author: String
+  author: {type: String, required: true}
 });
 
 var Recipe = mongoose.model('recipes', recipeSchema);

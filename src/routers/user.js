@@ -6,11 +6,11 @@ const bcrypt = require('bcryptjs')
 
 //Changes a user's password.
 router.put('/editaccount', (req, res) => {
-  User.findOne({ 'username': req.session.user.username }, function (err, foundUser) {
+  User.findOne({ 'username': req.body.username }, function (err, foundUser) {
     if (!foundUser) {
       return res.status(404).send('User not found.')
     }
-    if (req.body.password !== req.body.confirmPW) {
+    if (req.body.password !== req.body.confirmPassword) {
       return res.status(400).send('Passwords do not match.')
     }
     foundUser.password = req.body.password;
